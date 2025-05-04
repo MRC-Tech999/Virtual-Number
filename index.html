@@ -1,42 +1,105 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Envoyer un Email avec Resend</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Temp Mail + Envoi - MARC-Tech</title>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+    .email-box, .send-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .email { color: #007bff; font-weight: bold; }
+    button { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    .message { background: #eef; padding: 10px; border-radius: 5px; margin-top: 10px; }
+  </style>
 </head>
 <body>
-  <h2>Formulaire d'envoi d'email</h2>
-  <form id="emailForm">
-    <input type="email" id="to" placeholder="Destinataire" required><br><br>
-    <input type="text" id="subject" placeholder="Sujet" required><br><br>
-    <textarea id="message" placeholder="Message" required></textarea><br><br>
-    <button type="submit">Envoyer</button>
-  </form>
-  <div id="result"></div>
+
+  <h2>Email Temporaire (MARC-Tech)</h2>
+  <div class="email-box">
+    <p>Votre email temporaire : <span class="email" id="emailDisplay">chargement...</span></p>
+    <button onclick="copyEmail()">Copier l’email</button>
+    <button onclick="loadMessages()">Afficher les messages</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div class="send-box">
+    <h3>Envoyer un Email</h3>
+    <input type="email" id="toEmail" placeholder="Destinataire (ex: destinataire@mail.com)" required>
+    <input type="text" id="subject" placeholder="Sujet" required>
+    <textarea id="body" placeholder="Message..." rows="4" required></textarea>
+    <button onclick="sendEmail()">Envoyer</button>
+    <div id="sendStatus"></div>
+  </div>
 
   <script>
-    document.getElementById('emailForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537'; // Déplace cette clé dans Cloudflare Worker
+    const RAPIDAPI_KEY = 'ab42dda446mshde4ba65d25b85fdp13b83ejsn3965c0519b7d'; // Déplace cette clé dans Cloudflare Worker
 
-      const to = document.getElementById('to').value;
-      const subject = document.getElementById('subject').value;
-      const message = document.getElementById('message').value;
+    let tempEmail = generateEmail();
+    document.getElementById('emailDisplay').textContent = tempEmail;
 
-      const response = await fetch('http://localhost:3000/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, message })
+    function generateEmail() {
+      return Math.random().toString(36).substring(2, 10) + '@mailsac.com';
+    }
+
+    function copyEmail() {
+      navigator.clipboard.writeText(tempEmail).then(() => {
+        alert("Email copié !");
       });
+    }
 
-      const result = await response.json();
-      const output = document.getElementById('result');
+    function loadMessages() {
+      fetch(`https://holy-pond-68e7.mrc-tech.workers.dev/get-messages?email=${tempEmail}`)
+      .then(res => res.json())
+      .then(messages => {
+        const container = document.getElementById("messages");
+        container.innerHTML = "";
+        if (!messages.length) {
+          container.innerHTML = "<p>Aucun message reçu.</p>";
+          return;
+        }
+        messages.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "message";
+          div.innerHTML = `<p><strong>De:</strong> ${m.from}</p><p><strong>Sujet:</strong> ${m.subject}</p>`;
+          container.appendChild(div);
+        });
+      });
+    }
 
-      if (result.success) {
-        output.innerHTML = '<p style="color:green;">Email envoyé avec succès !</p>';
-      } else {
-        output.innerHTML = `<p style="color:red;">Erreur : ${result.error}</p>`;
-      }
-    });
+    function sendEmail() {
+      const sendTo = document.getElementById("toEmail").value;
+      const subject = document.getElementById("subject").value;
+      const body = document.getElementById("body").value;
+
+      const payload = {
+        sendTo: sendTo,
+        replyTo: tempEmail,
+        isHtml: false,
+        title: subject,
+        body: body
+      };
+
+      fetch("https://holy-pond-68e7.mrc-tech.workers.dev/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        const msg = document.getElementById("sendStatus");
+        if (data.success) {
+          msg.innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
+        } else {
+          msg.innerHTML = "<p style='color:red;'>Échec de l'envoi.</p>";
+        }
+      });
+    }
   </script>
+
 </body>
 </html>
