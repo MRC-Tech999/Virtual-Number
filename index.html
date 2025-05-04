@@ -1,60 +1,71 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Email Temporaire + Envoi - MARC-Tech</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Temporary Email + Envoi - MARC-Tech</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; color: #333; }
     .container { max-width: 600px; margin: auto; }
-    .box { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .email { font-weight: bold; color: #007bff; word-wrap: break-word; }
-    input, textarea, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
+    .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    input, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .email { font-weight: bold; color: #007bff; }
     .message { background: #eef; padding: 10px; border-radius: 5px; margin-top: 10px; }
-    footer { text-align: center; margin-top: 30px; font-size: 14px; color: #777; }
-    .insta-button { display: inline-block; margin-top: 15px; background: #e1306c; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; }
+    footer { text-align: center; margin-top: 40px; font-size: 14px; color: #777; }
+    .ig-btn { display: inline-block; background: #E4405F; color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Email Temporaire + Envoi (MARC-Tech)</h1>
+    <h2>Email Temporaire + Envoi - MARC-Tech</h2>
 
     <div class="box">
-      <p>Email temporaire : <span class="email" id="emailDisplay"></span></p>
+      <p>Email temporaire : <span id="emailDisplay" class="email"></span></p>
+      <button onclick="getMessages()">Actualiser</button>
       <button onclick="copyEmail()">Copier l'email</button>
-      <button onclick="getMessages()">Actualiser les messages</button>
     </div>
 
     <div id="messages" class="box"></div>
 
     <div class="box">
       <h3>Envoyer un email</h3>
-      <input type="email" id="toEmail" placeholder="Destinataire (ex: destinataire@mail.com)" required />
-      <input type="email" id="fromEmail" placeholder="Expéditeur (votre email temporaire)" required />
-      <input type="text" id="subject" placeholder="Sujet de l'email" required />
-      <textarea id="body" rows="4" placeholder="Message" required></textarea>
+      <label>Destinataire :</label>
+      <input type="email" id="toEmail" placeholder="destinataire@example.com" required>
+
+      <label>Expéditeur (utilise l'email temporaire) :</label>
+      <input type="email" id="fromEmail" readonly>
+
+      <label>Sujet :</label>
+      <input type="text" id="subject" placeholder="Sujet de l'email" required>
+
+      <label>Message :</label>
+      <textarea id="body" rows="4" placeholder="Tapez votre message ici..." required></textarea>
+
       <button onclick="sendEmail()">Envoyer</button>
       <div id="sendStatus"></div>
     </div>
 
     <footer>
-      <a class="insta-button" href="https://instagram.com/j.m.h.2024" target="_blank">Suis-moi sur Instagram</a><br>
-      &copy; 2025 MARC-Tech - Tous droits réservés
+      <a class="ig-btn" href="https://instagram.com/j.m.h.2024" target="_blank">Suivez @j.m.h.2024</a><br><br>
+      &copy; 2025 MARC-Tech - Tous droits réservés.
     </footer>
   </div>
 
   <script>
-    const MAILSAC_KEY = "k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537";
-    const MAILERSEND_API_KEY = "mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32";
+    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537';
+    const MAILERSEND_API_KEY = 'mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32';
+    const DOMAIN = 'zxk54v885x1ljy6v.mlsender.net';
+
     let tempEmail = generateEmail();
 
     document.getElementById("emailDisplay").textContent = tempEmail;
+    document.getElementById("fromEmail").value = tempEmail;
 
     function generateEmail() {
-      const rand = Math.random().toString(36).substring(2, 10);
-      return `${rand}@mailsac.com`;
+      const random = Math.random().toString(36).substring(2, 10);
+      return `${random}@${DOMAIN}`;
     }
 
     function copyEmail() {
@@ -62,53 +73,55 @@
     }
 
     function getMessages() {
-      fetch(`https://mailsac.com/api/addresses/${tempEmail}/messages`, {
-        headers: { "Mailsac-Key": MAILSAC_KEY }
+      const inbox = tempEmail.split('@')[0];
+      fetch(`https://mailsac.com/api/addresses/${inbox}@mailsac.com/messages`, {
+        headers: { 'Mailsac-Key': MAILSAC_KEY }
       })
-        .then(res => res.json())
-        .then(data => {
-          const container = document.getElementById("messages");
-          container.innerHTML = "";
-          if (!data.length) {
-            container.innerHTML = "<p>Aucun message reçu pour l’instant.</p>";
-            return;
-          }
-          data.forEach(msg => {
-            const msgEl = document.createElement("div");
-            msgEl.className = "message";
-            msgEl.innerHTML = `<strong>De :</strong> ${msg.from}<br><strong>Sujet :</strong> ${msg.subject}`;
-            container.appendChild(msgEl);
-          });
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("messages");
+        container.innerHTML = "";
+        if (!data.length) {
+          container.innerHTML = "<p>Aucun message pour l’instant.</p>";
+          return;
+        }
+        data.forEach(msg => {
+          const el = document.createElement("div");
+          el.className = "message";
+          el.innerHTML = `<strong>De:</strong> ${msg.from}<br><strong>Sujet:</strong> ${msg.subject}`;
+          container.appendChild(el);
         });
+      });
     }
 
     function sendEmail() {
       const to = document.getElementById("toEmail").value;
       const from = document.getElementById("fromEmail").value;
       const subject = document.getElementById("subject").value;
-      const body = document.getElementById("body").value;
+      const message = document.getElementById("body").value;
 
       fetch("https://api.mailersend.com/v1/email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + MAILERSEND_API_KEY
+          "Authorization": `Bearer ${MAILERSEND_API_KEY}`
         },
         body: JSON.stringify({
-          from: { email: from },
+          from: { email: from, name: "MARC-Tech" },
           to: [{ email: to }],
           subject: subject,
-          text: body
+          text: message
         })
       })
       .then(res => res.json())
-      .then(data => {
-        document.getElementById("sendStatus").innerHTML = data.message_id
+      .then(response => {
+        document.getElementById("sendStatus").innerHTML = response.id
           ? "<p style='color:green;'>Email envoyé avec succès !</p>"
-          : "<p style='color:red;'>Échec de l'envoi de l'email.</p>";
+          : "<p style='color:red;'>Erreur lors de l'envoi.</p>";
       })
-      .catch(() => {
+      .catch(err => {
         document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur d’envoi.</p>";
+        console.error(err);
       });
     }
   </script>
