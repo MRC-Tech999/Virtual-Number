@@ -1,59 +1,42 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Test MailerSend</title>
+  <meta charset="UTF-8">
+  <title>Envoyer un Email avec Resend</title>
 </head>
 <body>
-  <h1>Envoyer un email avec MailerSend</h1>
-
-  <form onsubmit="sendEmail(event)">
-    <label>Destinataire : <input type="email" id="to" required /></label><br><br>
-    <label>Sujet : <input type="text" id="subject" required /></label><br><br>
-    <label>Message :<br><textarea id="text" rows="5" cols="40" required></textarea></label><br><br>
+  <h2>Formulaire d'envoi d'email</h2>
+  <form id="emailForm">
+    <input type="email" id="to" placeholder="Destinataire" required><br><br>
+    <input type="text" id="subject" placeholder="Sujet" required><br><br>
+    <textarea id="message" placeholder="Message" required></textarea><br><br>
     <button type="submit">Envoyer</button>
   </form>
-
   <div id="result"></div>
 
   <script>
-    async function sendEmail(e) {
+    document.getElementById('emailForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const to = document.getElementById('to').value;
       const subject = document.getElementById('subject').value;
-      const text = document.getElementById('text').value;
+      const message = document.getElementById('message').value;
 
-      const response = await fetch("https://api.mailersend.com/v1/email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer mlsn.eadd527b12b153dcbb0f08bd198ab2f3ba2608d2c2f959277ecc3fed7f0cabff"
-        },
-        body: JSON.stringify({
-          from: {
-            email: "noreply@test-zxk54v885x1ljy6v.mlsender.net",
-            name: "Mailer Test"
-          },
-          to: [
-            {
-              email: to,
-              name: "Destinataire"
-            }
-          ],
-          subject: subject,
-          text: text
-        })
+      const response = await fetch('http://localhost:3000/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, message })
       });
 
-      const resultDiv = document.getElementById("result");
-      if (response.ok) {
-        resultDiv.innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
+      const result = await response.json();
+      const output = document.getElementById('result');
+
+      if (result.success) {
+        output.innerHTML = '<p style="color:green;">Email envoyé avec succès !</p>';
       } else {
-        const error = await response.json();
-        resultDiv.innerHTML = `<p style='color:red;'>Erreur : ${error.message}</p>`;
+        output.innerHTML = `<p style="color:red;">Erreur : ${result.error}</p>`;
       }
-    }
+    });
   </script>
 </body>
 </html>
