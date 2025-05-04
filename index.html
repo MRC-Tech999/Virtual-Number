@@ -1,129 +1,106 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Temporary Email + Envoi - MARC-Tech</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 600px; margin: auto; }
-    .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    input, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
-    button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .email { font-weight: bold; color: #007bff; }
-    .message { background: #eef; padding: 10px; border-radius: 5px; margin-top: 10px; }
-    footer { text-align: center; margin-top: 40px; font-size: 14px; color: #777; }
-    .ig-btn { display: inline-block; background: #E4405F; color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Email Temporaire + Envoi - MARC-Tech</h2>
+<!-- ... (tout le reste du code inchangé jusqu'au footer) -->
 
-    <div class="box">
-      <p>Email temporaire : <span id="emailDisplay" class="email"></span></p>
-      <button onclick="getMessages()">Actualiser</button>
-      <button onclick="copyEmail()">Copier l'email</button>
-    </div>
+<!-- Formulaire d'envoi d'email -->
+<h2>Envoyer un email</h2>
+<div class="email-box">
+  <form id="sendEmailForm" onsubmit="sendEmail(event)">
+    <label>À : <input type="email" id="toEmail" required /></label><br><br>
+    <label>Sujet : <input type="text" id="subject" required /></label><br><br>
+    <label>Message :</label><br>
+    <textarea id="message" rows="5" style="width: 100%;" required></textarea><br><br>
+    <button type="submit">Envoyer</button>
+  </form>
+  <div id="sendResult"></div>
+</div>
 
-    <div id="messages" class="box"></div>
+<!-- ... Footer déjà présent ... -->
 
-    <div class="box">
-      <h3>Envoyer un email</h3>
-      <label>Destinataire :</label>
-      <input type="email" id="toEmail" placeholder="destinataire@example.com" required>
+<script>
+  let currentEmail = "";
 
-      <label>Expéditeur (utilise l'email temporaire) :</label>
-      <input type="email" id="fromEmail" readonly>
+  window.onload = async function () {
+    const res = await fetch('/api/email');
+    const data = await res.json();
+    currentEmail = data.email;
+    document.getElementById('emailDisplay').textContent = currentEmail;
+  };
 
-      <label>Sujet :</label>
-      <input type="text" id="subject" placeholder="Sujet de l'email" required>
+  function copyEmail() {
+    navigator.clipboard.writeText(currentEmail).then(() => {
+      alert("Email copié !");
+    });
+  }
 
-      <label>Message :</label>
-      <textarea id="body" rows="4" placeholder="Tapez votre message ici..." required></textarea>
+  async function refreshMessages() {
+    const res = await fetch(`https://mailsac.com/api/addresses/${currentEmail}/messages`, {
+      headers: {
+        'Mailsac-Key': 'k_7zCBw6nPlhRCS4HNlYSQH8I7hidMGtcU8SpcPX1yDg66e4'
+      }
+    });
+    const messages = await res.json();
+    const container = document.getElementById("messages");
+    container.innerHTML = "";
 
-      <button onclick="sendEmail()">Envoyer</button>
-      <div id="sendStatus"></div>
-    </div>
-
-    <footer>
-      <a class="ig-btn" href="https://instagram.com/j.m.h.2024" target="_blank">Suivez @j.m.h.2024</a><br><br>
-      &copy; 2025 MARC-Tech - Tous droits réservés.
-    </footer>
-  </div>
-
-  <script>
-    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537';
-    const MAILERSEND_API_KEY = 'mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32';
-    const DOMAIN = 'zxk54v885x1ljy6v.mlsender.net';
-
-    let tempEmail = generateEmail();
-
-    document.getElementById("emailDisplay").textContent = tempEmail;
-    document.getElementById("fromEmail").value = tempEmail;
-
-    function generateEmail() {
-      const random = Math.random().toString(36).substring(2, 10);
-      return `${random}@${DOMAIN}`;
+    if (!messages.length) {
+      container.innerHTML = "<p>Aucun message pour l'instant.</p>";
+      return;
     }
 
-    function copyEmail() {
-      navigator.clipboard.writeText(tempEmail).then(() => alert("Email copié !"));
-    }
+    messages.forEach(m => {
+      const div = document.createElement("div");
+      div.className = "message";
+      div.innerHTML = `
+        <p><strong>De :</strong> ${m.from}</p>
+        <p><strong>Sujet :</strong> ${m.subject}</p>
+        <button onclick="readMessage('${m._id}')">Lire</button>
+        <div id="body-${m._id}"></div>
+      `;
+      container.appendChild(div);
+    });
+  }
 
-    function getMessages() {
-      const inbox = tempEmail.split('@')[0];
-      fetch(`https://mailsac.com/api/addresses/${inbox}@mailsac.com/messages`, {
-        headers: { 'Mailsac-Key': MAILSAC_KEY }
-      })
-      .then(res => res.json())
-      .then(data => {
-        const container = document.getElementById("messages");
-        container.innerHTML = "";
-        if (!data.length) {
-          container.innerHTML = "<p>Aucun message pour l’instant.</p>";
-          return;
-        }
-        data.forEach(msg => {
-          const el = document.createElement("div");
-          el.className = "message";
-          el.innerHTML = `<strong>De:</strong> ${msg.from}<br><strong>Sujet:</strong> ${msg.subject}`;
-          container.appendChild(el);
-        });
-      });
-    }
+  async function readMessage(id) {
+    const res = await fetch(`https://mailsac.com/api/text/${currentEmail}/${id}`, {
+      headers: {
+        'Mailsac-Key': 'k_7zCBw6nPlhRCS4HNlYSQH8I7hidMGtcU8SpcPX1yDg66e4'
+      }
+    });
+    const body = await res.text();
+    document.getElementById(`body-${id}`).innerHTML = `<pre>${body}</pre>`;
+  }
 
-    function sendEmail() {
-      const to = document.getElementById("toEmail").value;
-      const from = document.getElementById("fromEmail").value;
-      const subject = document.getElementById("subject").value;
-      const message = document.getElementById("body").value;
+  async function sendEmail(e) {
+    e.preventDefault();
 
-      fetch("https://api.mailersend.com/v1/email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${MAILERSEND_API_KEY}`
+    const to = document.getElementById("toEmail").value;
+    const subject = document.getElementById("subject").value;
+    const text = document.getElementById("message").value;
+
+    const response = await fetch("https://api.mailersend.com/v1/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32"
+      },
+      body: JSON.stringify({
+        from: {
+          email: currentEmail,
+          name: "Temp Mail"
         },
-        body: JSON.stringify({
-          from: { email: from, name: "MARC-Tech" },
-          to: [{ email: to }],
-          subject: subject,
-          text: message
-        })
+        to: [{ email: to }],
+        subject: subject,
+        text: text
       })
-      .then(res => res.json())
-      .then(response => {
-        document.getElementById("sendStatus").innerHTML = response.id
-          ? "<p style='color:green;'>Email envoyé avec succès !</p>"
-          : "<p style='color:red;'>Erreur lors de l'envoi.</p>";
-      })
-      .catch(err => {
-        document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur d’envoi.</p>";
-        console.error(err);
-      });
+    });
+
+    const resultBox = document.getElementById("sendResult");
+
+    if (response.ok) {
+      resultBox.innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
+      document.getElementById("sendEmailForm").reset();
+    } else {
+      const err = await response.json();
+      resultBox.innerHTML = `<p style='color:red;'>Erreur : ${err.message || 'Échec de l’envoi.'}</p>`;
     }
-  </script>
-</body>
-</html>
+  }
+</script>
