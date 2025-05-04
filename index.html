@@ -3,67 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Recevez un email temporaire gratuit avec MARC-Tech et envoyez des emails facilement." />
   <title>Email Temporaire + Envoi - MARC-Tech</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 20px; color: #333; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; color: #333; }
     .container { max-width: 600px; margin: auto; }
-    .box { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .email { font-weight: bold; color: #007bff; word-break: break-all; }
-    button { padding: 10px 15px; background: #007bff; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-    .message { margin-top: 10px; background: #eef; padding: 10px; border-radius: 5px; }
-    footer { text-align: center; font-size: 14px; margin-top: 40px; color: #666; }
-    .insta { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-    .insta img { width: 20px; height: 20px; margin-right: 8px; }
+    .box { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .email { font-weight: bold; color: #007bff; word-wrap: break-word; }
+    input, textarea, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .message { background: #eef; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    footer { text-align: center; margin-top: 30px; font-size: 14px; color: #777; }
+    .insta-button { display: inline-block; margin-top: 15px; background: #e1306c; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Email Temporaire & Envoi (MARC-Tech)</h1>
+    <h1>Email Temporaire + Envoi (MARC-Tech)</h1>
 
     <div class="box">
       <p>Email temporaire : <span class="email" id="emailDisplay"></span></p>
-      <button onclick="getMessages()">Actualiser</button>
       <button onclick="copyEmail()">Copier l'email</button>
+      <button onclick="getMessages()">Actualiser les messages</button>
     </div>
 
-    <div id="messages"></div>
+    <div id="messages" class="box"></div>
 
     <div class="box">
       <h3>Envoyer un email</h3>
-      <input type="email" id="toEmail" placeholder="Destinataire (ex: test@mail.com)" required />
+      <input type="email" id="toEmail" placeholder="Destinataire (ex: destinataire@mail.com)" required />
+      <input type="email" id="fromEmail" placeholder="Expéditeur (votre email temporaire)" required />
       <input type="text" id="subject" placeholder="Sujet de l'email" required />
-      <textarea id="body" rows="4" placeholder="Tapez votre message ici..." required></textarea>
+      <textarea id="body" rows="4" placeholder="Message" required></textarea>
       <button onclick="sendEmail()">Envoyer</button>
       <div id="sendStatus"></div>
     </div>
 
-    <div class="insta">
-      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram">
-      <a href="https://instagram.com/j.m.h.2024" target="_blank">@j.m.h.2024</a>
-    </div>
-
-    <footer>&copy; 2025 MARC-Tech - Tous droits réservés</footer>
+    <footer>
+      <a class="insta-button" href="https://instagram.com/j.m.h.2024" target="_blank">Suis-moi sur Instagram</a><br>
+      &copy; 2025 MARC-Tech - Tous droits réservés
+    </footer>
   </div>
 
   <script>
     const MAILSAC_KEY = "k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537";
-    const MAILERSEND_KEY = "mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32";
-
+    const MAILERSEND_API_KEY = "mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32";
     let tempEmail = generateEmail();
+
     document.getElementById("emailDisplay").textContent = tempEmail;
 
     function generateEmail() {
-      const random = Math.random().toString(36).substring(2, 10);
-      return `${random}@mailsac.com`;
+      const rand = Math.random().toString(36).substring(2, 10);
+      return `${rand}@mailsac.com`;
     }
 
     function copyEmail() {
-      navigator.clipboard.writeText(tempEmail).then(() => {
-        alert("Email copié !");
-      });
+      navigator.clipboard.writeText(tempEmail).then(() => alert("Email copié !"));
     }
 
     function getMessages() {
@@ -81,7 +76,7 @@
           data.forEach(msg => {
             const msgEl = document.createElement("div");
             msgEl.className = "message";
-            msgEl.innerHTML = `<strong>De:</strong> ${msg.from}<br><strong>Sujet:</strong> ${msg.subject}<br>`;
+            msgEl.innerHTML = `<strong>De :</strong> ${msg.from}<br><strong>Sujet :</strong> ${msg.subject}`;
             container.appendChild(msgEl);
           });
         });
@@ -89,34 +84,32 @@
 
     function sendEmail() {
       const to = document.getElementById("toEmail").value;
+      const from = document.getElementById("fromEmail").value;
       const subject = document.getElementById("subject").value;
-      const text = document.getElementById("body").value;
-
-      const payload = {
-        from: { email: tempEmail, name: "Marc-Mail" },
-        to: [{ email: to }],
-        subject: subject,
-        text: text
-      };
+      const body = document.getElementById("body").value;
 
       fetch("https://api.mailersend.com/v1/email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + MAILERSEND_KEY
+          "Authorization": "Bearer " + MAILERSEND_API_KEY
         },
-        body: JSON.stringify(payload)
-      })
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("sendStatus").innerHTML = data.id
-            ? "<p style='color:green;'>Email envoyé avec succès !</p>"
-            : "<p style='color:red;'>Échec de l'envoi de l'email.</p>";
+        body: JSON.stringify({
+          from: { email: from },
+          to: [{ email: to }],
+          subject: subject,
+          text: body
         })
-        .catch(error => {
-          console.error("Erreur:", error);
-          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur d’envoi.</p>";
-        });
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("sendStatus").innerHTML = data.message_id
+          ? "<p style='color:green;'>Email envoyé avec succès !</p>"
+          : "<p style='color:red;'>Échec de l'envoi de l'email.</p>";
+      })
+      .catch(() => {
+        document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur d’envoi.</p>";
+      });
     }
   </script>
 </body>
