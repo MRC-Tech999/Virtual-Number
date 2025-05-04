@@ -2,92 +2,121 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Temp Mail + SendGrid - MARC-Tech</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Recevez un email temporaire gratuit avec MARC-Tech et envoyez des emails facilement." />
+  <title>Email Temporaire + Envoi - MARC-Tech</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-    .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .email { font-weight: bold; color: #007bff; }
-    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 600px; margin: auto; }
+    .box { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .email { font-weight: bold; color: #007bff; word-break: break-all; }
+    button { padding: 10px 15px; background: #007bff; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
     button:hover { background: #0056b3; }
-    .message { background: #eef; padding: 10px; margin-top: 10px; border-radius: 5px; }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+    .message { margin-top: 10px; background: #eef; padding: 10px; border-radius: 5px; }
+    footer { text-align: center; font-size: 14px; margin-top: 40px; color: #666; }
+    .insta { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .insta img { width: 20px; height: 20px; margin-right: 8px; }
   </style>
 </head>
 <body>
-  <h2>MARC-Tech | Email Temporaire + Envoi Email</h2>
+  <div class="container">
+    <h1>Email Temporaire & Envoi (MARC-Tech)</h1>
 
-  <div class="box">
-    <p>Votre email temporaire : <span class="email" id="tempEmail"></span></p>
-    <button onclick="copyEmail()">Copier</button>
-    <button onclick="loadMessages()">Actualiser</button>
-  </div>
+    <div class="box">
+      <p>Email temporaire : <span class="email" id="emailDisplay"></span></p>
+      <button onclick="getMessages()">Actualiser</button>
+      <button onclick="copyEmail()">Copier l'email</button>
+    </div>
 
-  <div id="messages" class="box"></div>
+    <div id="messages"></div>
 
-  <div class="box">
-    <h3>Envoyer un email (via SendGrid)</h3>
-    <input type="email" id="to" placeholder="Email destinataire" />
-    <input type="text" id="subject" placeholder="Sujet" />
-    <textarea id="body" placeholder="Votre message ici..."></textarea>
-    <button onclick="sendMail()">Envoyer</button>
-    <div id="status"></div>
+    <div class="box">
+      <h3>Envoyer un email</h3>
+      <input type="email" id="toEmail" placeholder="Destinataire (ex: test@mail.com)" required />
+      <input type="text" id="subject" placeholder="Sujet de l'email" required />
+      <textarea id="body" rows="4" placeholder="Tapez votre message ici..." required></textarea>
+      <button onclick="sendEmail()">Envoyer</button>
+      <div id="sendStatus"></div>
+    </div>
+
+    <div class="insta">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram">
+      <a href="https://instagram.com/j.m.h.2024" target="_blank">@j.m.h.2024</a>
+    </div>
+
+    <footer>&copy; 2025 MARC-Tech - Tous droits réservés</footer>
   </div>
 
   <script>
-    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537';
-    const SENDGRID_KEY = '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';
+    const MAILSAC_KEY = "k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537";
+    const MAILERSEND_KEY = "mlsn.d872cab7fbfad60b1b76aa09452e55ebb5adc233cc8a14d8886b3c0bb71e5e32";
 
-    const tempEmail = `${Math.random().toString(36).substring(2, 10)}@mailsac.com`;
-    document.getElementById("tempEmail").textContent = tempEmail;
+    let tempEmail = generateEmail();
+    document.getElementById("emailDisplay").textContent = tempEmail;
+
+    function generateEmail() {
+      const random = Math.random().toString(36).substring(2, 10);
+      return `${random}@mailsac.com`;
+    }
 
     function copyEmail() {
-      navigator.clipboard.writeText(tempEmail).then(() => alert("Email copié !"));
-    }
-
-    function loadMessages() {
-      fetch(`https://mailsac.com/api/addresses/${tempEmail}/messages`, {
-        headers: { 'Mailsac-Key': MAILSAC_KEY }
-      })
-      .then(res => res.json())
-      .then(messages => {
-        const msgDiv = document.getElementById("messages");
-        msgDiv.innerHTML = messages.length ? "" : "<p>Aucun message reçu.</p>";
-        messages.forEach(msg => {
-          const div = document.createElement("div");
-          div.className = "message";
-          div.innerHTML = `<strong>De:</strong> ${msg.from}<br><strong>Sujet:</strong> ${msg.subject}`;
-          msgDiv.appendChild(div);
-        });
+      navigator.clipboard.writeText(tempEmail).then(() => {
+        alert("Email copié !");
       });
     }
 
-    function sendMail() {
-      const to = document.getElementById("to").value;
-      const subject = document.getElementById("subject").value;
-      const body = document.getElementById("body").value;
+    function getMessages() {
+      fetch(`https://mailsac.com/api/addresses/${tempEmail}/messages`, {
+        headers: { "Mailsac-Key": MAILSAC_KEY }
+      })
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById("messages");
+          container.innerHTML = "";
+          if (!data.length) {
+            container.innerHTML = "<p>Aucun message reçu pour l’instant.</p>";
+            return;
+          }
+          data.forEach(msg => {
+            const msgEl = document.createElement("div");
+            msgEl.className = "message";
+            msgEl.innerHTML = `<strong>De:</strong> ${msg.from}<br><strong>Sujet:</strong> ${msg.subject}<br>`;
+            container.appendChild(msgEl);
+          });
+        });
+    }
 
-      fetch("https://api.sendgrid.com/v3/mail/send", {
+    function sendEmail() {
+      const to = document.getElementById("toEmail").value;
+      const subject = document.getElementById("subject").value;
+      const text = document.getElementById("body").value;
+
+      const payload = {
+        from: { email: tempEmail, name: "Marc-Mail" },
+        to: [{ email: to }],
+        subject: subject,
+        text: text
+      };
+
+      fetch("https://api.mailersend.com/v1/email", {
         method: "POST",
         headers: {
-          "Authorization": "Bearer " + SENDGRID_KEY,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + MAILERSEND_KEY
         },
-        body: JSON.stringify({
-          personalizations: [{ to: [{ email: to }] }],
-          from: { email: tempEmail },
-          subject: subject,
-          content: [{ type: "text/plain", value: body }]
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("sendStatus").innerHTML = data.id
+            ? "<p style='color:green;'>Email envoyé avec succès !</p>"
+            : "<p style='color:red;'>Échec de l'envoi de l'email.</p>";
         })
-      })
-      .then(res => {
-        document.getElementById("status").innerHTML =
-          res.status === 202 ? "<p style='color:green;'>Email envoyé !</p>" : "<p style='color:red;'>Échec de l'envoi.</p>";
-      })
-      .catch(err => {
-        document.getElementById("status").innerHTML = "<p style='color:red;'>Erreur lors de l'envoi.</p>";
-        console.error(err);
-      });
+        .catch(error => {
+          console.error("Erreur:", error);
+          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur d’envoi.</p>";
+        });
     }
   </script>
 </body>
