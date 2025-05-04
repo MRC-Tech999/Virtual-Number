@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temp Mail + SendGrid - MARC-Tech</title>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+    .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .email { font-weight: bold; color: #007bff; }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .message { background: #eef; padding: 10px; margin-top: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h2>MARC-Tech | Email Temporaire + Envoi Email</h2>
+
+  <div class="box">
+    <p>Votre email temporaire : <span class="email" id="tempEmail"></span></p>
+    <button onclick="copyEmail()">Copier</button>
+    <button onclick="loadMessages()">Actualiser</button>
+  </div>
+
+  <div id="messages" class="box"></div>
+
+  <div class="box">
+    <h3>Envoyer un email (via SendGrid)</h3>
+    <input type="email" id="to" placeholder="Email destinataire" />
+    <input type="text" id="subject" placeholder="Sujet" />
+    <textarea id="body" placeholder="Votre message ici..."></textarea>
+    <button onclick="sendMail()">Envoyer</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537';
+    const SENDGRID_KEY = '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';
+
+    const tempEmail = `${Math.random().toString(36).substring(2, 10)}@mailsac.com`;
+    document.getElementById("tempEmail").textContent = tempEmail;
+
+    function copyEmail() {
+      navigator.clipboard.writeText(tempEmail).then(() => alert("Email copié !"));
+    }
+
+    function loadMessages() {
+      fetch(`https://mailsac.com/api/addresses/${tempEmail}/messages`, {
+        headers: { 'Mailsac-Key': MAILSAC_KEY }
+      })
+      .then(res => res.json())
+      .then(messages => {
+        const msgDiv = document.getElementById("messages");
+        msgDiv.innerHTML = messages.length ? "" : "<p>Aucun message reçu.</p>";
+        messages.forEach(msg => {
+          const div = document.createElement("div");
+          div.className = "message";
+          div.innerHTML = `<strong>De:</strong> ${msg.from}<br><strong>Sujet:</strong> ${msg.subject}`;
+          msgDiv.appendChild(div);
+        });
+      });
+    }
+
+    function sendMail() {
+      const to = document.getElementById("to").value;
+      const subject = document.getElementById("subject").value;
+      const body = document.getElementById("body").value;
+
+      fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + SENDGRID_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: to }] }],
+          from: { email: tempEmail },
+          subject: subject,
+          content: [{ type: "text/plain", value: body }]
+        })
+      })
+      .then(res => {
+        document.getElementById("status").innerHTML =
+          res.status === 202 ? "<p style='color:green;'>Email envoyé !</p>" : "<p style='color:red;'>Échec de l'envoi.</p>";
+      })
+      .catch(err => {
+        document.getElementById("status").innerHTML = "<p style='color:red;'>Erreur lors de l'envoi.</p>";
+        console.error(err);
+      });
+    }
+  </script>
+</body>
+</html>
