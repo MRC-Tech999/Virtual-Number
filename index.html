@@ -34,11 +34,15 @@
   </div>
 
   <script>
-    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537'; // Déplace cette clé dans Cloudflare Worker
-    const RAPIDAPI_KEY = 'ab42dda446mshde4ba65d25b85fdp13b83ejsn3965c0519b7d'; // Déplace cette clé dans Cloudflare Worker
+    const MAILSAC_KEY = 'k_DEgCwZ8YXu6Xiy04LZ1T6xh346mqRysqy6MQAFRfdl6E8d';
+    const RAPIDAPI_KEY = 'ab42dda446mshde4ba65d25b85fdp13b83ejsn3965c0519b7d';
 
-    let tempEmail = generateEmail();
-    document.getElementById('emailDisplay').textContent = tempEmail;
+    let tempEmail = "";
+
+    window.onload = function() {
+      tempEmail = generateEmail();
+      document.getElementById('emailDisplay').textContent = tempEmail;
+    };
 
     function generateEmail() {
       return Math.random().toString(36).substring(2, 10) + '@mailsac.com';
@@ -47,11 +51,13 @@
     function copyEmail() {
       navigator.clipboard.writeText(tempEmail).then(() => {
         alert("Email copié !");
-      });
+      }).catch(err => alert("Erreur de copie : " + err));
     }
 
     function loadMessages() {
-      fetch(`https://holy-pond-68e7.mrc-tech.workers.dev/get-messages?email=${tempEmail}`)
+      fetch(`https://mailsac.com/api/addresses/${tempEmail}/messages`, {
+        headers: { 'Mailsac-Key': MAILSAC_KEY }
+      })
       .then(res => res.json())
       .then(messages => {
         const container = document.getElementById("messages");
@@ -66,6 +72,10 @@
           div.innerHTML = `<p><strong>De:</strong> ${m.from}</p><p><strong>Sujet:</strong> ${m.subject}</p>`;
           container.appendChild(div);
         });
+      })
+      .catch(err => {
+        console.error("Erreur Mailsac:", err);
+        alert("Erreur lors du chargement des messages.");
       });
     }
 
@@ -75,28 +85,34 @@
       const body = document.getElementById("body").value;
 
       const payload = {
-        sendTo: sendTo,
+        sendto: sendTo,
+        name: "MARC-Tech",
         replyTo: tempEmail,
-        isHtml: false,
+        ishtml: false,
         title: subject,
         body: body
       };
 
-      fetch("https://holy-pond-68e7.mrc-tech.workers.dev/send-email", {
+      fetch("https://mail-sender-api1.p.rapidapi.com/", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-rapidapi-host": "mail-sender-api1.p.rapidapi.com",
+          "x-rapidapi-key": RAPIDAPI_KEY
         },
         body: JSON.stringify(payload)
       })
       .then(res => res.json())
       .then(data => {
-        const msg = document.getElementById("sendStatus");
-        if (data.success) {
-          msg.innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
+        if (data.success || data.message?.toLowerCase().includes("sent")) {
+          document.getElementById("sendStatus").innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
         } else {
-          msg.innerHTML = "<p style='color:red;'>Échec de l'envoi.</p>";
+          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Échec de l'envoi : " + JSON.stringify(data) + "</p>";
         }
+      })
+      .catch(err => {
+        console.error("Erreur d'envoi:", err);
+        document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur lors de l'envoi.</p>";
       });
     }
   </script>
