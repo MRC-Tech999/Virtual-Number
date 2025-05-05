@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analyse d'image - MarcGPT Vision</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px;
+    }
+    h1 { text-align: center; }
+    input, textarea, button {
+      width: 100%; padding: 10px; margin: 10px 0;
+    }
+    img { max-width: 100%; margin-top: 10px; }
+    .response {
+      background-color: #eef; padding: 15px; border-radius: 5px; margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MarcGPT - Analyse d’image</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <textarea id="question" placeholder="Posez une question sur l’image..."></textarea>
+    <button onclick="analyzeImage()">Envoyer</button>
+    <div id="imagePreview"></div>
+    <div id="response" class="response" style="display: none;"></div>
+  </div>
+
+  <script>
+    let imageBase64 = "";
+
+    document.getElementById('imageInput').addEventListener('change', function() {
+      const file = this.files[0];
+      const reader = new FileReader();
+      reader.onload = function() {
+        imageBase64 = reader.result.split(',')[1];
+        document.getElementById('imagePreview').innerHTML = '<img src="' + reader.result + '" />';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    async function analyzeImage() {
+      const question = document.getElementById('question').value;
+      const responseDiv = document.getElementById('response');
+      responseDiv.style.display = "block";
+      responseDiv.textContent = "Analyse en cours...";
+
+      const result = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer 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"
+        },
+        body: JSON.stringify({
+          model: "gpt-4-vision-preview",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: question },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: "data:image/jpeg;base64," + imageBase64
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 1000
+        })
+      });
+
+      const data = await result.json();
+      responseDiv.textContent = data.choices?.[0]?.message?.content || "Erreur de réponse.";
+    }
+  </script>
+</body>
+</html>
