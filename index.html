@@ -1,143 +1,77 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MarcGPT Vision</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f8;
-    }
-    header {
-      background: #2a2a72;
-      color: white;
-      padding: 15px 20px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    .container {
-      max-width: 700px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    textarea, input, button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #2a2a72;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #1c1c5a;
-    }
-    #imagePreview img {
-      max-width: 100%;
-      margin-top: 15px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-    }
-    .response {
-      margin-top: 20px;
-      padding: 15px;
-      background: #eef1fa;
-      border-left: 5px solid #2a2a72;
-      border-radius: 8px;
-      font-size: 16px;
-      white-space: pre-wrap;
-    }
-    .marcgpt-label {
-      font-weight: bold;
-      color: #2a2a72;
-      margin-bottom: 8px;
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <header>MarcGPT Vision</header>
-  <div class="container">
-    <input type="file" id="imageInput" accept="image/*" />
-    <textarea id="question" placeholder="Pose ta question ici..."></textarea>
-    <button onclick="sendToMarcGPT()">Envoyer</button>
-    <div id="imagePreview"></div>
-    <div id="response" class="response" style="display:none;">
-      <span class="marcgpt-label">MarcGPT :</span>
-      <div id="responseText"></div>
-    </div>
-  </div>
+<!-- ... garde tout le haut du fichier identique jusqu'à <script> -->
 
-  <script>
-    let base64Image = "";
+<script>
+let base64Image = "";
 
-    document.getElementById("imageInput").addEventListener("change", function () {
-      const file = this.files[0];
-      const reader = new FileReader();
-      reader.onload = function () {
-        base64Image = reader.result.split(",")[1];
-        document.getElementById("imagePreview").innerHTML = `<img src="${reader.result}" alt="Image sélectionnée">`;
-      };
-      if (file) reader.readAsDataURL(file);
+document.getElementById("imageInput").addEventListener("change", function () {
+  const file = this.files[0];
+  const reader = new FileReader();
+  reader.onload = function () {
+    base64Image = reader.result.split(",")[1];
+    document.getElementById("imagePreview").innerHTML = `<img src="${reader.result}" alt="Image sélectionnée">`;
+  };
+  if (file) reader.readAsDataURL(file);
+});
+
+async function sendToMarcGPT() {
+  const question = document.getElementById("question").value.trim();
+  const responseBox = document.getElementById("response");
+  const responseText = document.getElementById("responseText");
+  responseBox.style.display = "block";
+  responseText.innerHTML = "<i>MarcGPT réfléchit à ta question...</i>";
+
+  if (!question) {
+    responseText.innerHTML = "<b>Erreur :</b> Tu dois entrer une question.";
+    return;
+  }
+
+  // Crée le contenu du message
+  let content = [{ type: "text", text: question }];
+  if (base64Image) {
+    content.push({
+      type: "image_url",
+      image_url: { url: `data:image/jpeg;base64,${base64Image}` }
+    });
+  }
+
+  // Crée la requête API
+  const payload = {
+    model: "gpt-4-vision-preview",
+    messages: [{ role: "user", content }],
+    max_tokens: 1000
+  };
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer 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"
+      },
+      body: JSON.stringify(payload)
     });
 
-    async function sendToMarcGPT() {
-      const question = document.getElementById("question").value.trim();
-      const responseBox = document.getElementById("response");
-      const responseText = document.getElementById("responseText");
-      responseBox.style.display = "block";
-      responseText.textContent = "MarcGPT réfléchit...";
+    const data = await res.json();
 
-      if (!question) {
-        responseText.textContent = "Merci d’entrer une question.";
-        return;
-      }
-
-      let content = [{ type: "text", text: question }];
-      if (base64Image) {
-        content.push({
-          type: "image_url",
-          image_url: { url: `data:image/jpeg;base64,${base64Image}` }
-        });
-      }
-
-      const payload = {
-        model: "gpt-4-vision-preview",
-        messages: [{ role: "user", content }],
-        max_tokens: 1000
-      };
-
-      try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        const reply = data.choices?.[0]?.message?.content;
-        responseText.textContent = reply || "Désolé, aucune réponse reçue.";
-      } catch (err) {
-        console.error(err);
-        responseText.textContent = "Une erreur est survenue.";
-      }
+    // Vérifie si une erreur est retournée
+    if (data.error) {
+      responseText.innerHTML = `<b>Erreur MarcGPT :</b> ${data.error.message}`;
+      return;
     }
-  </script>
-</body>
-</html>
+
+    // Affiche la réponse proprement
+    const reply = data.choices?.[0]?.message?.content;
+    if (reply) {
+      responseText.innerHTML = reply
+        .replace(/\n/g, "<br>")
+        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+    } else {
+      responseText.innerHTML = "<b>MarcGPT :</b> Aucune réponse reçue.";
+    }
+
+  } catch (err) {
+    console.error("Erreur API :", err);
+    responseText.innerHTML = "<b>Erreur :</b> Impossible de contacter MarcGPT. Vérifie ta connexion ou ta clé API.";
+  }
+}
+</script>
