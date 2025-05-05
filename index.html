@@ -34,11 +34,16 @@
   </div>
 
   <script>
-    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537';
-    const RAPIDAPI_KEY = 'ab42dda446mshde4ba65d25b85fdp13b83ejsn3965c0519b7d';
+    const MAILSAC_KEY = 'k_DEgCwZ8YXu6Xiy04LZ1T6xh346mqRysqy6MQAFRfdl6E8d'; // Ta clé API MailSac
+    const RAPIDAPI_KEY = 'ab42dda446mshde4ba65d25b85fdp13b83ejsn3965c0519b7d'; // Ta clé RapidAPI SendMail
 
-    let tempEmail = generateEmail();
-    document.getElementById('emailDisplay').textContent = tempEmail;
+    let tempEmail = "";
+
+    // Génère l'email temporaire à l'ouverture
+    window.onload = function() {
+      tempEmail = generateEmail();
+      document.getElementById('emailDisplay').textContent = tempEmail;
+    };
 
     function generateEmail() {
       return Math.random().toString(36).substring(2, 10) + '@mailsac.com';
@@ -47,10 +52,11 @@
     function copyEmail() {
       navigator.clipboard.writeText(tempEmail).then(() => {
         alert("Email copié !");
-      });
+      }).catch(err => alert("Erreur de copie : " + err));
     }
 
     function loadMessages() {
+      document.getElementById("messages").innerHTML = "<p>Chargement...</p>";
       fetch(`https://mailsac.com/api/addresses/${tempEmail}/messages`, {
         headers: { 'Mailsac-Key': MAILSAC_KEY }
       })
@@ -65,16 +71,29 @@
         messages.forEach(m => {
           const div = document.createElement("div");
           div.className = "message";
-          div.innerHTML = `<p><strong>De:</strong> ${m.from}</p><p><strong>Sujet:</strong> ${m.subject}</p>`;
+          div.innerHTML = `
+            <p><strong>De:</strong> ${m.from}</p>
+            <p><strong>Sujet:</strong> ${m.subject}</p>
+            <p><strong>Contenu:</strong> ${m.text || "(aucun contenu)"}</p>
+          `;
           container.appendChild(div);
         });
+      })
+      .catch(err => {
+        console.error("Erreur Mailsac:", err);
+        alert("Erreur lors du chargement des messages.");
       });
     }
 
     function sendEmail() {
-      const sendTo = document.getElementById("toEmail").value;
-      const subject = document.getElementById("subject").value;
-      const body = document.getElementById("body").value;
+      const sendTo = document.getElementById("toEmail").value.trim();
+      const subject = document.getElementById("subject").value.trim();
+      const body = document.getElementById("body").value.trim();
+
+      if (!sendTo || !subject || !body) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
 
       const payload = {
         sendTo: sendTo,
@@ -83,6 +102,8 @@
         title: subject,
         body: body
       };
+
+      document.getElementById("sendStatus").innerHTML = "Envoi en cours...";
 
       fetch("https://sendmail-ultimate-email-sender.p.rapidapi.com/send-email", {
         method: "POST",
@@ -98,11 +119,11 @@
         if (data.success) {
           document.getElementById("sendStatus").innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
         } else {
-          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Échec de l'envoi.</p>";
+          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Échec de l'envoi : " + (data.message || "Erreur inconnue") + "</p>";
         }
       })
       .catch(err => {
-        console.error(err);
+        console.error("Erreur d'envoi:", err);
         document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur lors de l'envoi.</p>";
       });
     }
