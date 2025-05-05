@@ -34,15 +34,11 @@
   </div>
 
   <script>
-    const MAILSAC_KEY = 'k_DEgCwZ8YXu6Xiy04LZ1T6xh346mqRysqy6MQAFRfdl6E8d';
+    const MAILSAC_KEY = 'k_SlFHIkRTITLDKtpxYoQ8JX0ua9pnKIyBgQ0537';
     const RAPIDAPI_KEY = 'ab42dda446mshde4ba65d25b85fdp13b83ejsn3965c0519b7d';
 
-    let tempEmail = "";
-
-    window.onload = function() {
-      tempEmail = generateEmail();
-      document.getElementById('emailDisplay').textContent = tempEmail;
-    };
+    let tempEmail = generateEmail();
+    document.getElementById('emailDisplay').textContent = tempEmail;
 
     function generateEmail() {
       return Math.random().toString(36).substring(2, 10) + '@mailsac.com';
@@ -51,7 +47,7 @@
     function copyEmail() {
       navigator.clipboard.writeText(tempEmail).then(() => {
         alert("Email copié !");
-      }).catch(err => alert("Erreur de copie : " + err));
+      });
     }
 
     function loadMessages() {
@@ -72,10 +68,6 @@
           div.innerHTML = `<p><strong>De:</strong> ${m.from}</p><p><strong>Sujet:</strong> ${m.subject}</p>`;
           container.appendChild(div);
         });
-      })
-      .catch(err => {
-        console.error("Erreur Mailsac:", err);
-        alert("Erreur lors du chargement des messages.");
       });
     }
 
@@ -85,33 +77,32 @@
       const body = document.getElementById("body").value;
 
       const payload = {
-        sendto: sendTo,
-        name: "MARC-Tech",
+        sendTo: sendTo,
         replyTo: tempEmail,
-        ishtml: false,
+        isHtml: false,
         title: subject,
         body: body
       };
 
-      fetch("https://mail-sender-api1.p.rapidapi.com/", {
+      fetch("https://sendmail-ultimate-email-sender.p.rapidapi.com/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-rapidapi-host": "mail-sender-api1.p.rapidapi.com",
+          "x-rapidapi-host": "sendmail-ultimate-email-sender.p.rapidapi.com",
           "x-rapidapi-key": RAPIDAPI_KEY
         },
         body: JSON.stringify(payload)
       })
       .then(res => res.json())
       .then(data => {
-        if (data.success || data.message?.toLowerCase().includes("sent")) {
+        if (data.success) {
           document.getElementById("sendStatus").innerHTML = "<p style='color:green;'>Email envoyé avec succès !</p>";
         } else {
-          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Échec de l'envoi : " + JSON.stringify(data) + "</p>";
+          document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Échec de l'envoi.</p>";
         }
       })
       .catch(err => {
-        console.error("Erreur d'envoi:", err);
+        console.error(err);
         document.getElementById("sendStatus").innerHTML = "<p style='color:red;'>Erreur lors de l'envoi.</p>";
       });
     }
