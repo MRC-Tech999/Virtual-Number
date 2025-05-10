@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Uploader une Image</title>
+  <title>Plateforme de Partage d'Images</title>
   <style>
     * {
       margin: 0;
@@ -14,17 +14,17 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 20px;
-      background: #f4f4f4;
+      background: #f0f0f5;
       text-align: center;
       color: #333;
     }
 
     header {
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
     header img {
-      width: 180px;
+      width: 220px;
       max-width: 100%;
       height: auto;
     }
@@ -32,8 +32,8 @@
     .social-button img {
       width: 40px;
       height: 40px;
-      margin-top: 10px;
-      transition: transform 0.2s;
+      margin-top: 20px;
+      transition: transform 0.3s;
     }
 
     .social-button img:hover {
@@ -41,27 +41,39 @@
     }
 
     h2 {
-      margin-top: 30px;
+      margin-top: 40px;
       margin-bottom: 20px;
       color: #444;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    p.description {
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 30px;
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     input[type="file"] {
       margin-top: 10px;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
       background-color: #fff;
+      font-size: 16px;
     }
 
     button {
-      margin-top: 15px;
-      padding: 10px 25px;
-      font-size: 16px;
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 18px;
       background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
       transition: background-color 0.3s;
     }
@@ -71,12 +83,12 @@
     }
 
     .result {
-      margin-top: 30px;
-      padding: 20px;
+      margin-top: 40px;
+      padding: 25px;
       background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -84,8 +96,8 @@
     .result img {
       max-width: 100%;
       height: auto;
-      border-radius: 6px;
-      margin-bottom: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
 
     a {
@@ -97,13 +109,27 @@
       text-decoration: underline;
     }
 
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #777;
+    }
+
+    footer a {
+      color: #2196f3;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 600px) {
       header img {
-        width: 120px;
+        width: 180px;
       }
 
       .social-button img {
-        width: 32px;
+        width: 35px;
       }
 
       button {
@@ -115,19 +141,27 @@
 <body>
 
   <header>
-    <img src="https://i.ibb.co/b5r1xkXJ/1a82e26e-0f2f-4211-87fa-5bec21c01d9e.jpg" alt="Logo du site">
+    <img src="https://i.ibb.co/b5r1xkXJ/1a82e26e-0f2f-4211-87fa-5bec21c01d9e.jpg" alt="Logo de la plateforme">
   </header>
+
+  <p class="description">
+    Bienvenue sur notre plateforme qui permet de partager des liens d'images pour les développeurs et créateurs de sites web. Si vous avez besoin d'intégrer une image à votre projet, vous pouvez télécharger votre fichier ici et obtenir un lien direct pour l'utiliser dans votre code. Idéal pour les développeurs, designers, et toute personne qui travaille sur des projets web.
+  </p>
 
   <a href="https://www.instagram.com/j.m.h.2024" class="social-button" target="_blank">
     <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
   </a>
 
-  <h2>Uploader une image</h2>
+  <h2>Uploader une Image</h2>
   <input type="file" id="fileInput" accept="image/*" />
   <br />
   <button onclick="uploadImage()">Envoyer</button>
 
   <div class="result" id="result"></div>
+
+  <footer>
+    <p>&copy; 2024 Marc-Tech. <a href="https://www.instagram.com/j.m.h.2024" target="_blank">Suivez-moi sur Instagram pour les mises à jour!</a></p>
+  </footer>
 
   <script>
     async function uploadImage() {
