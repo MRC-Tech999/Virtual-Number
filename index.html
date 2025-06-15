@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Send Email Form</title>
+</head>
+<body style="font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px;">
+  <h1>Contact Support</h1>
+  <form action="/send" method="POST" style="max-width: 400px; margin: auto;">
+    <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 10px; margin-bottom: 10px;">
+    <input type="email" name="email" placeholder="Your Email" required style="width: 100%; padding: 10px; margin-bottom: 10px;">
+    <textarea name="message" placeholder="Your Message" required style="width: 100%; padding: 10px; margin-bottom: 10px;"></textarea>
+    <button type="submit" style="padding: 10px 20px; background: purple; color: white; border: none;">Send</button>
+  </form>
+</body>
+</html>
